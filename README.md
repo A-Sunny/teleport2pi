@@ -16,8 +16,28 @@ The installer will:
 - Clone the repo & create a Python virtual environment
 - Install all dependencies
 - Walk you through config (bot token, user ID, model)
-- Optionally pull your Ollama model
+- Detect existing Ollama models or install Ollama fresh
 - Optionally set up a systemd service (auto-start on boot)
+
+---
+
+## Uninstall
+
+```bash
+bash ~/teleport2pi/uninstall.sh
+```
+
+Or if the folder is already removed:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/a-sunny/teleport2pi/main/uninstall.sh)
+```
+
+The uninstaller will:
+- Stop and remove the systemd service
+- Optionally back up your `config.py` (bot token & user ID) before deleting
+- Remove the installation directory
+- Optionally remove Ollama and all AI models (defaults to **No**)
 
 ---
 
@@ -44,48 +64,6 @@ The installer will:
 
 ---
 
-## Quick Start
-
-### 1. Install Ollama on your Pi
-
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-ollama pull llama3.2   # or any model you prefer
-```
-
-### 2. Clone this repo
-
-```bash
-git clone https://github.com/yourname/teleport2pi.git
-cd teleport2pi
-```
-
-### 3. Install Python dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure
-
-```bash
-cp config/config.example.py config/config.py
-nano config/config.py
-```
-
-Fill in:
-- `TELEGRAM_BOT_TOKEN` — from [@BotFather](https://t.me/BotFather)
-- `ALLOWED_USER_IDS` — your Telegram user ID (get it from [@userinfobot](https://t.me/userinfobot))
-- `DEFAULT_MODEL` — model name matching what you pulled in Ollama
-
-### 5. Run
-
-```bash
-python bot/bot.py
-```
-
----
-
 ## Bot Commands
 
 | Command | Description |
@@ -96,7 +74,7 @@ python bot/bot.py
 | `/status` | Show Ollama status and current model |
 | `/model` | Show active model |
 | `/models` | List installed models |
-| `/setmodel <n>` | Switch to a different model |
+| `/setmodel <name>` | Switch to a different model |
 | `/summarize <text>` | Summarize text |
 | `/translate <lang> <text>` | Translate text |
 | `/code <task>` | Generate code |
@@ -106,33 +84,23 @@ Or just **send any message** to chat directly with the AI.
 
 ---
 
-## Run as a Service (auto-start on boot)
-
-Create a systemd service so TelePort2PI starts automatically:
+## Managing the Service
 
 ```bash
-sudo nano /etc/systemd/system/teleport2pi.service
-```
-
-```ini
-[Unit]
-Description=TelePort2PI Telegram AI Bot
-After=network.target
-
-[Service]
-User=pi
-WorkingDirectory=/home/pi/teleport2pi
-ExecStart=/usr/bin/python3 bot/bot.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable teleport2pi
+# Start
 sudo systemctl start teleport2pi
+
+# Stop
+sudo systemctl stop teleport2pi
+
+# Restart
+sudo systemctl restart teleport2pi
+
+# Check status
+sudo systemctl status teleport2pi
+
+# View live logs
+sudo journalctl -u teleport2pi -f
 ```
 
 ---
@@ -146,10 +114,13 @@ teleport2pi/
 │   ├── commands.py       # All /command handlers
 │   └── ollama_client.py  # Ollama REST API client
 ├── config/
-│   └── config.py # Configuration template
+│   └── config.example.py # Configuration template
 ├── docs/
 │   └── architecture.md   # System design diagram
 ├── logs/                 # Created automatically at runtime
+├── install.sh            # One-line installer
+├── uninstall.sh          # Uninstaller
+├── start.sh              # Manual start script (created by installer)
 ├── requirements.txt
 ├── .gitignore
 └── README.md
