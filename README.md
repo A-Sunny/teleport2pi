@@ -9,7 +9,7 @@ Chat with local AI models running on your Raspberry Pi — from anywhere in the 
 ## Install (one line)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/a-sunny/teleport2pi/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/teleport2pi/main/install.sh)
 ```
 
 The installer will:
@@ -56,7 +56,7 @@ ollama pull llama3.2   # or any model you prefer
 ### 2. Clone this repo
 
 ```bash
-git clone https://github.com/a-sunny/teleport2pi.git
+git clone https://github.com/yourname/teleport2pi.git
 cd teleport2pi
 ```
 
