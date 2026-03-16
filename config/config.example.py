@@ -8,12 +8,12 @@
 # Telegram Bot Configuration
 # Get your token from @BotFather on Telegram
 # ----------------------------------------------------------
-TELEGRAM_BOT_TOKEN = "8219091752:AAFE_w7Ntz6uHjgKqf1SlVIGOhxHdm5IjDc"
+TELEGRAM_BOT_TOKEN = "your_token"
 
 # Allowed Telegram user IDs (whitelist for security)
 # Find your user ID by messaging @userinfobot on Telegram
 # Example: ALLOWED_USER_IDS = [123456789, 987654321]
-ALLOWED_USER_IDS = [1662620314]
+ALLOWED_USER_IDS = [user_id]
 
 # ----------------------------------------------------------
 # Ollama Configuration
