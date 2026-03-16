@@ -39,23 +39,21 @@ cat << 'EOF'
 EOF
 echo -e "${RESET}"
 
-# ── Config ───────────────────────────────────────────────────
+# ── Paths ─────────────────────────────────────────────────────
 INSTALL_DIR="$HOME/teleport2pi"
 REPO_URL="https://github.com/a-sunny/teleport2pi.git"
 VENV_DIR="$INSTALL_DIR/.venv"
-PYTHON="python3"
 
-# ── Step 1: System check ─────────────────────────────────────
+# ── Step 1: System check ──────────────────────────────────────
 header "Step 1/6 — Checking system requirements"
 
-command -v python3 >/dev/null 2>&1 || error "Python 3 is not installed. Run: sudo apt install python3"
-command -v pip3 >/dev/null 2>&1    || error "pip3 is not installed. Run: sudo apt install python3-pip"
-command -v git >/dev/null 2>&1     || error "git is not installed. Run: sudo apt install git"
+command -v python3 >/dev/null 2>&1 || error "Python 3 not found. Run: sudo apt install python3"
+command -v pip3    >/dev/null 2>&1 || error "pip3 not found. Run: sudo apt install python3-pip"
+command -v git     >/dev/null 2>&1 || error "git not found. Run: sudo apt install git"
 
 PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
 info "Python version: $PY_VERSION"
 
-# Check python3-venv is available
 if ! python3 -m venv --help >/dev/null 2>&1; then
     warn "python3-venv not found. Installing..."
     sudo apt-get install -y python3-venv || error "Failed to install python3-venv"
@@ -63,17 +61,13 @@ fi
 
 success "System requirements met"
 
-# ── Step 2: Clone or update repo ─────────────────────────────
+# ── Step 2: Clone or update repo ──────────────────────────────
 header "Step 2/6 — Downloading TelePort2PI"
 
 if [ -d "$INSTALL_DIR/.git" ]; then
-    warn "Existing installation found at $INSTALL_DIR — updating..."
+    warn "Existing installation found — updating..."
     git -C "$INSTALL_DIR" pull || error "Git pull failed"
     success "Updated to latest version"
-elif [ -d "$INSTALL_DIR" ]; then
-    warn "$INSTALL_DIR exists but is not a git repo — installing into it"
-    git clone "$REPO_URL" "$INSTALL_DIR" || error "Git clone failed. Check your internet connection."
-    success "Downloaded TelePort2PI"
 else
     git clone "$REPO_URL" "$INSTALL_DIR" || error "Git clone failed. Check your internet connection."
     success "Downloaded to $INSTALL_DIR"
@@ -81,67 +75,79 @@ fi
 
 cd "$INSTALL_DIR"
 
-# ── Step 3: Virtual environment ──────────────────────────────
+# ── Step 3: Virtual environment ───────────────────────────────
 header "Step 3/6 — Setting up Python virtual environment"
 
 if [ ! -d "$VENV_DIR" ]; then
     python3 -m venv "$VENV_DIR"
-    success "Virtual environment created at $VENV_DIR"
+    success "Virtual environment created"
 else
     success "Virtual environment already exists — skipping"
 fi
 
-# Activate venv
 source "$VENV_DIR/bin/activate"
-
-# Upgrade pip silently
 pip install --upgrade pip --quiet
 success "pip upgraded"
 
-# ── Step 4: Install dependencies ─────────────────────────────
+# ── Step 4: Install dependencies ──────────────────────────────
 header "Step 4/6 — Installing dependencies"
 
 pip install -r requirements.txt --quiet || error "Failed to install requirements"
 success "All dependencies installed"
 
-# ── Step 5: Config setup ─────────────────────────────────────
+# ── Step 5: Configuration ─────────────────────────────────────
 header "Step 5/6 — Configuration"
 
 CONFIG_FILE="$INSTALL_DIR/config/config.py"
 
-if [ -f "$CONFIG_FILE" ]; then
-    warn "config.py already exists — skipping (your settings are safe)"
-else
-    cp "$INSTALL_DIR/config/config.example.py" "$CONFIG_FILE"
-    success "Created config/config.py from template"
-fi
+# Always copy fresh from example so placeholders are always predictable
+cp "$INSTALL_DIR/config/config.example.py" "$CONFIG_FILE"
+success "Created config/config.py from template"
 
-# Interactive config prompts
 echo ""
 echo -e "${BOLD}Let's configure TelePort2PI:${RESET}"
-echo -e "(Press Enter to skip and edit config/config.py manually later)\n"
+echo ""
 
-# Telegram Bot Token
-read -p "  Telegram Bot Token (from @BotFather): " BOT_TOKEN
-if [ -n "$BOT_TOKEN" ]; then
-    sed -i "s|YOUR_TELEGRAM_BOT_TOKEN_HERE|$BOT_TOKEN|g" "$CONFIG_FILE"
-    success "Bot token saved"
-fi
+# ── Bot Token ─────────────────────────────────────────────────
+while true; do
+    read -p "  Telegram Bot Token (from @BotFather): " BOT_TOKEN
+    if [ -n "$BOT_TOKEN" ]; then break; fi
+    warn "Bot token is required. Get it from @BotFather on Telegram."
+done
 
-# Telegram User ID
-read -p "  Your Telegram User ID (from @userinfobot): " USER_ID
-if [ -n "$USER_ID" ]; then
-    sed -i "s|ALLOWED_USER_IDS = \[\]|ALLOWED_USER_IDS = [$USER_ID]|g" "$CONFIG_FILE"
-    success "User ID saved"
-fi
+python3 -c "
+import re
+with open('$CONFIG_FILE') as f:
+    c = f.read()
+c = re.sub(r'TELEGRAM_BOT_TOKEN\s*=\s*\".*?\"', 'TELEGRAM_BOT_TOKEN = \"$BOT_TOKEN\"', c)
+with open('$CONFIG_FILE', 'w') as f:
+    f.write(c)
+"
+success "Bot token saved"
 
-# ── Step 6: Ollama & Model setup ─────────────────────────────
+# ── User ID ───────────────────────────────────────────────────
+while true; do
+    read -p "  Your Telegram User ID (from @userinfobot): " USER_ID
+    if [[ "$USER_ID" =~ ^[0-9]+$ ]]; then break; fi
+    warn "User ID must be a number. Message @userinfobot on Telegram to find yours."
+done
+
+python3 -c "
+import re
+with open('$CONFIG_FILE') as f:
+    c = f.read()
+c = re.sub(r'ALLOWED_USER_IDS\s*=\s*\[.*?\]', 'ALLOWED_USER_IDS = [$USER_ID]', c)
+with open('$CONFIG_FILE', 'w') as f:
+    f.write(c)
+"
+success "User ID saved"
+
+# ── Step 6: Ollama & Model ────────────────────────────────────
 header "Step 6/6 — Ollama & Model Setup"
 
 if command -v ollama >/dev/null 2>&1; then
     success "Ollama is already installed"
 
-    # Get list of pulled models (skip header line)
     PULLED_MODELS=$(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}' | grep -v '^$' || true)
 
     if [ -n "$PULLED_MODELS" ]; then
@@ -160,19 +166,18 @@ if command -v ollama >/dev/null 2>&1; then
         read -p "  Pick a model number [1]: " MODEL_CHOICE
         MODEL_CHOICE=${MODEL_CHOICE:-1}
 
-        # Validate it's a number
         if [[ "$MODEL_CHOICE" =~ ^[0-9]+$ ]] && [ "$MODEL_CHOICE" -le "${#MODEL_ARRAY[@]}" ]; then
             MODEL="${MODEL_ARRAY[$((MODEL_CHOICE-1))]}"
             success "Using existing model: $MODEL"
         else
             read -p "  Enter model name (e.g. qwen2.5:1.5b): " MODEL
             MODEL=${MODEL:-qwen2.5:1.5b}
-            if ! ollama list 2>/dev/null | grep -q "^$MODEL"; then
+            if ! ollama list 2>/dev/null | grep -q "$MODEL"; then
                 warn "Model '$MODEL' not found locally."
-                read -p "  Pull it now? This may take a while. [Y/n]: " PULL
+                read -p "  Pull it now? [Y/n]: " PULL
                 PULL=${PULL:-Y}
                 if [[ "$PULL" =~ ^[Yy]$ ]]; then
-                    ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
+                    ollama pull "$MODEL" || warn "Pull failed — run: ollama pull $MODEL"
                 fi
             fi
         fi
@@ -181,7 +186,7 @@ if command -v ollama >/dev/null 2>&1; then
         read -p "  Enter a model to pull [qwen2.5:1.5b]: " MODEL
         MODEL=${MODEL:-qwen2.5:1.5b}
         info "Pulling '$MODEL'... this may take a while."
-        ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
+        ollama pull "$MODEL" || warn "Pull failed — run: ollama pull $MODEL"
     fi
 
 else
@@ -191,23 +196,30 @@ else
     if [[ "$INSTALL_OLLAMA" =~ ^[Yy]$ ]]; then
         curl -fsSL https://ollama.com/install.sh | sh
         success "Ollama installed"
-        echo ""
         read -p "  Enter a model to pull [qwen2.5:1.5b]: " MODEL
         MODEL=${MODEL:-qwen2.5:1.5b}
         info "Pulling '$MODEL'... this may take a while."
-        ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
+        ollama pull "$MODEL" || warn "Pull failed — run: ollama pull $MODEL"
     else
         MODEL="qwen2.5:1.5b"
-        warn "Skipping Ollama install. Make sure it's running before starting TelePort2PI."
+        warn "Skipping Ollama. Make sure it's running before starting TelePort2PI."
     fi
 fi
 
-# Save chosen model to config
-sed -i "s|DEFAULT_MODEL = \"llama3.2\"|DEFAULT_MODEL = \"$MODEL\"|g" "$CONFIG_FILE"
-sed -i "s|\"llama3.2\",|\"$MODEL\",|g" "$CONFIG_FILE"
+# Save chosen model to config using Python (safe for colons in names like qwen2.5:1.5b)
+python3 -c "
+import re
+with open('$CONFIG_FILE') as f:
+    c = f.read()
+c = re.sub(r'DEFAULT_MODEL\s*=\s*\".*?\"', 'DEFAULT_MODEL = \"$MODEL\"', c)
+with open('$CONFIG_FILE', 'w') as f:
+    f.write(c)
+"
 success "Default model set to: $MODEL"
 
-# ── Create launcher script ────────────────────────────────────
+# ── Create logs dir and launcher script ───────────────────────
+mkdir -p "$INSTALL_DIR/logs"
+
 cat > "$INSTALL_DIR/start.sh" << LAUNCHER
 #!/usr/bin/env bash
 cd "$INSTALL_DIR"
@@ -217,9 +229,9 @@ LAUNCHER
 chmod +x "$INSTALL_DIR/start.sh"
 success "Created start.sh launcher"
 
-# ── Optional: systemd service ────────────────────────────────
+# ── Systemd service (auto-start on boot) ──────────────────────
 echo ""
-read -p "  Install as a system service (auto-start on boot)? [Y/n]: " INSTALL_SERVICE
+read -p "  Auto-start TelePort2PI on boot? (recommended) [Y/n]: " INSTALL_SERVICE
 INSTALL_SERVICE=${INSTALL_SERVICE:-Y}
 
 if [[ "$INSTALL_SERVICE" =~ ^[Yy]$ ]]; then
@@ -243,22 +255,29 @@ SERVICE
 
     sudo systemctl daemon-reload
     sudo systemctl enable teleport2pi
-    success "Service installed and enabled (starts on boot)"
-    info "Control with: sudo systemctl start|stop|status teleport2pi"
+    sudo systemctl start teleport2pi
+    success "Service installed, enabled, and started!"
+    info "Useful commands:"
+    info "  sudo systemctl stop teleport2pi"
+    info "  sudo systemctl restart teleport2pi"
+    info "  sudo systemctl status teleport2pi"
+    info "  sudo journalctl -u teleport2pi -f"
+else
+    warn "Auto-start skipped. Start manually with: bash $INSTALL_DIR/start.sh"
 fi
 
-# ── Done ─────────────────────────────────────────────────────
+# ── Done ──────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${GREEN}  TelePort2PI installed successfully!${RESET}"
+echo -e "${GREEN}  TelePort2PI is ready!${RESET}"
 echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
-echo -e "  ${BOLD}Start manually:${RESET}   bash $INSTALL_DIR/start.sh"
+echo -e "  ${BOLD}Start manually:${RESET}    bash $INSTALL_DIR/start.sh"
 if [[ "$INSTALL_SERVICE" =~ ^[Yy]$ ]]; then
-echo -e "  ${BOLD}Start service:${RESET}    sudo systemctl start teleport2pi"
-echo -e "  ${BOLD}View logs:${RESET}        sudo journalctl -u teleport2pi -f"
+echo -e "  ${BOLD}Service control:${RESET}   sudo systemctl start|stop|restart teleport2pi"
+echo -e "  ${BOLD}View logs:${RESET}         sudo journalctl -u teleport2pi -f"
 fi
-echo -e "  ${BOLD}Edit config:${RESET}      nano $INSTALL_DIR/config/config.py"
+echo -e "  ${BOLD}Edit config:${RESET}       nano $INSTALL_DIR/config/config.py"
 echo ""
-echo -e "  ${CYAN}Make sure Ollama is running:  ollama serve${RESET}"
+echo -e "  ${CYAN}Open Telegram and send /start to your bot!${RESET}"
 echo ""
