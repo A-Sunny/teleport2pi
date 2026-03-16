@@ -96,7 +96,7 @@ class OllamaClient:
         logger.debug("Ollama generate | model=%s", model)
 
         try:
-            resp = self._session.post(url, json=payload, timeout=120)
+            resp = self._session.post(url, json=payload, timeout=300)
             resp.raise_for_status()
             return resp.json().get("response", "").strip()
         except requests.exceptions.ConnectionError:
@@ -141,7 +141,7 @@ class OllamaClient:
 
     def _blocking_chat(self, url: str, payload: dict) -> str:
         """Send chat request and wait for full response."""
-        resp = self._session.post(url, json=payload, timeout=120)
+        resp = self._session.post(url, json=payload, timeout=300)
         resp.raise_for_status()
         data = resp.json()
         return data.get("message", {}).get("content", "").strip()
@@ -149,7 +149,7 @@ class OllamaClient:
     def _stream_chat(self, url: str, payload: dict) -> str:
         """Stream chat response and return the full assembled text."""
         full_response = []
-        with self._session.post(url, json=payload, stream=True, timeout=120) as resp:
+        with self._session.post(url, json=payload, stream=True, timeout=300) as resp:
             resp.raise_for_status()
             for line in resp.iter_lines():
                 if line:
