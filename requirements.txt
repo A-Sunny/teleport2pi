@@ -1,0 +1,11 @@
+# TelePort2PI — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Telegram bot framework
+python-telegram-bot==21.6
+
+# HTTP client for Ollama REST API
+requests==2.32.3
+
+# Optional: for .env file support (alternative to config.py)
+# python-dotenv==1.0.1
