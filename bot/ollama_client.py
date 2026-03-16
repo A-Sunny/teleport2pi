@@ -17,9 +17,17 @@ class OllamaClient:
     Supports both blocking and streaming generation.
     """
 
-    def __init__(self, base_url: str, default_model: str):
+    def __init__(
+        self,
+        base_url: str,
+        default_model: str,
+        request_timeout: int = 300,
+    ):
         self.base_url = base_url.rstrip("/")
         self.default_model = default_model
+        # Requests timeout can be either a single value (connect+read)
+        # or a tuple (connect, read). We keep connect short and allow a longer read.
+        self._request_timeout = (10, request_timeout)
         self._session = requests.Session()
 
     # ------------------------------------------------------------------
@@ -96,7 +104,7 @@ class OllamaClient:
         logger.debug("Ollama generate | model=%s", model)
 
         try:
-            resp = self._session.post(url, json=payload, timeout=300)
+            resp = self._session.post(url, json=payload, timeout=self._request_timeout)
             resp.raise_for_status()
             return resp.json().get("response", "").strip()
         except requests.exceptions.ConnectionError:
@@ -104,6 +112,8 @@ class OllamaClient:
                 f"Cannot connect to Ollama at {self.base_url}. "
                 "Is Ollama running? Try: ollama serve"
             )
+        except requests.exceptions.Timeout:
+            raise OllamaTimeoutError("Ollama request timed out. The model may be loading.")
 
     def list_models(self) -> list[str]:
         """
@@ -141,7 +151,7 @@ class OllamaClient:
 
     def _blocking_chat(self, url: str, payload: dict) -> str:
         """Send chat request and wait for full response."""
-        resp = self._session.post(url, json=payload, timeout=300)
+        resp = self._session.post(url, json=payload, timeout=self._request_timeout)
         resp.raise_for_status()
         data = resp.json()
         return data.get("message", {}).get("content", "").strip()
@@ -149,7 +159,7 @@ class OllamaClient:
     def _stream_chat(self, url: str, payload: dict) -> str:
         """Stream chat response and return the full assembled text."""
         full_response = []
-        with self._session.post(url, json=payload, stream=True, timeout=300) as resp:
+        with self._session.post(url, json=payload, stream=True, timeout=self._request_timeout) as resp:
             resp.raise_for_status()
             for line in resp.iter_lines():
                 if line:

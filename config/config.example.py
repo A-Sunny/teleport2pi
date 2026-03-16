@@ -24,6 +24,10 @@ OLLAMA_BASE_URL = "http://localhost:11434"
 # Must be a model you have pulled via: ollama pull <model>
 DEFAULT_MODEL = "qwen2.5:1.5b"
 
+# How long to wait for Ollama to respond (in seconds)
+# Increase this if your model takes longer than ~2 minutes to generate.
+OLLAMA_REQUEST_TIMEOUT_SECONDS = 300
+
 # Available models users can switch between
 AVAILABLE_MODELS = [
     "qwen2.5:1.5b",

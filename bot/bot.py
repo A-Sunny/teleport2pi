@@ -224,6 +224,7 @@ def main() -> None:
     ollama = OllamaClient(
         base_url=config.OLLAMA_BASE_URL,
         default_model=config.DEFAULT_MODEL,
+        request_timeout=config.OLLAMA_REQUEST_TIMEOUT_SECONDS,
     )
     if not ollama.is_available():
         logger.warning(
