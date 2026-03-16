@@ -8,12 +8,12 @@
 # Telegram Bot Configuration
 # Get your token from @BotFather on Telegram
 # ----------------------------------------------------------
-TELEGRAM_BOT_TOKEN = "your_token"
+TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE"
 
 # Allowed Telegram user IDs (whitelist for security)
 # Find your user ID by messaging @userinfobot on Telegram
 # Example: ALLOWED_USER_IDS = [123456789, 987654321]
-ALLOWED_USER_IDS = [user_id]
+ALLOWED_USER_IDS = []
 
 # ----------------------------------------------------------
 # Ollama Configuration
@@ -26,13 +26,12 @@ DEFAULT_MODEL = "qwen2.5:1.5b"
 
 # Available models users can switch between
 AVAILABLE_MODELS = [
+    "qwen2.5:1.5b",
+    "qwen2.5",
     "llama3.2",
     "mistral",
     "phi3",
     "deepseek-r1",
-    "qwen2.5"
-    "qwen2.biq4"
-    "qwen2.5:1.5b",
 ]
 
 # ----------------------------------------------------------
