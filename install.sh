@@ -135,29 +135,55 @@ if [ -n "$USER_ID" ]; then
     success "User ID saved"
 fi
 
-# Default model
-read -p "  Default Ollama model [qwen2.5:1.5b]: " MODEL
-MODEL=${MODEL:-qwen2.5:1.5b}
-sed -i "s|DEFAULT_MODEL = \"llama3.2\"|DEFAULT_MODEL = \"$MODEL\"|g" "$CONFIG_FILE"
-# Also update AVAILABLE_MODELS to include it at top
-sed -i "s|\"llama3.2\",|\"$MODEL\",|g" "$CONFIG_FILE"
-success "Default model set to: $MODEL"
-
-# ── Step 6: Ollama check ─────────────────────────────────────
-header "Step 6/6 — Checking Ollama"
+# ── Step 6: Ollama & Model setup ─────────────────────────────
+header "Step 6/6 — Ollama & Model Setup"
 
 if command -v ollama >/dev/null 2>&1; then
-    success "Ollama is installed"
-    if ollama list 2>/dev/null | grep -q "$MODEL"; then
-        success "Model '$MODEL' is already pulled"
-    else
-        warn "Model '$MODEL' not found locally."
-        read -p "  Pull it now? This may take a while. [Y/n]: " PULL
-        PULL=${PULL:-Y}
-        if [[ "$PULL" =~ ^[Yy]$ ]]; then
-            ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
+    success "Ollama is already installed"
+
+    # Get list of pulled models (skip header line)
+    PULLED_MODELS=$(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}' | grep -v '^$' || true)
+
+    if [ -n "$PULLED_MODELS" ]; then
+        echo ""
+        echo -e "  ${BOLD}Models already on your system:${RESET}"
+        i=1
+        declare -a MODEL_ARRAY
+        while IFS= read -r m; do
+            echo "    [$i] $m"
+            MODEL_ARRAY+=("$m")
+            ((i++))
+        done <<< "$PULLED_MODELS"
+        echo "    [$i] Enter a different model name"
+        echo ""
+
+        read -p "  Pick a model number [1]: " MODEL_CHOICE
+        MODEL_CHOICE=${MODEL_CHOICE:-1}
+
+        # Validate it's a number
+        if [[ "$MODEL_CHOICE" =~ ^[0-9]+$ ]] && [ "$MODEL_CHOICE" -le "${#MODEL_ARRAY[@]}" ]; then
+            MODEL="${MODEL_ARRAY[$((MODEL_CHOICE-1))]}"
+            success "Using existing model: $MODEL"
+        else
+            read -p "  Enter model name (e.g. qwen2.5:1.5b): " MODEL
+            MODEL=${MODEL:-qwen2.5:1.5b}
+            if ! ollama list 2>/dev/null | grep -q "^$MODEL"; then
+                warn "Model '$MODEL' not found locally."
+                read -p "  Pull it now? This may take a while. [Y/n]: " PULL
+                PULL=${PULL:-Y}
+                if [[ "$PULL" =~ ^[Yy]$ ]]; then
+                    ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
+                fi
+            fi
         fi
+    else
+        warn "Ollama is installed but no models are pulled yet."
+        read -p "  Enter a model to pull [qwen2.5:1.5b]: " MODEL
+        MODEL=${MODEL:-qwen2.5:1.5b}
+        info "Pulling '$MODEL'... this may take a while."
+        ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
     fi
+
 else
     warn "Ollama is not installed."
     read -p "  Install Ollama now? [Y/n]: " INSTALL_OLLAMA
@@ -165,12 +191,21 @@ else
     if [[ "$INSTALL_OLLAMA" =~ ^[Yy]$ ]]; then
         curl -fsSL https://ollama.com/install.sh | sh
         success "Ollama installed"
-        info "Pulling model '$MODEL'..."
+        echo ""
+        read -p "  Enter a model to pull [qwen2.5:1.5b]: " MODEL
+        MODEL=${MODEL:-qwen2.5:1.5b}
+        info "Pulling '$MODEL'... this may take a while."
         ollama pull "$MODEL" || warn "Pull failed — run 'ollama pull $MODEL' manually"
     else
+        MODEL="qwen2.5:1.5b"
         warn "Skipping Ollama install. Make sure it's running before starting TelePort2PI."
     fi
 fi
+
+# Save chosen model to config
+sed -i "s|DEFAULT_MODEL = \"llama3.2\"|DEFAULT_MODEL = \"$MODEL\"|g" "$CONFIG_FILE"
+sed -i "s|\"llama3.2\",|\"$MODEL\",|g" "$CONFIG_FILE"
+success "Default model set to: $MODEL"
 
 # ── Create launcher script ────────────────────────────────────
 cat > "$INSTALL_DIR/start.sh" << LAUNCHER
