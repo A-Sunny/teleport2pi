@@ -1,67 +1,66 @@
 # TelePort2PI
 
-**TelePort2PI** is an open-source project that connects a Telegram bot to locally running AI models on a Raspberry Pi using Ollama.
+TelePort2PI is an open-source bridge that connects a Telegram bot with locally running AI models on a Raspberry Pi using Ollama.
 
-It allows you to access your personal AI assistant from anywhere through Telegram while keeping all AI processing local.
+It allows you to access your personal AI assistant from anywhere through Telegram while keeping all AI processing on your own hardware.
 
 ---
 
-## Features
+# Project Goal
 
+The goal of TelePort2PI is to make it easy to run a **private AI assistant** on a Raspberry Pi and interact with it remotely using Telegram.
+
+Instead of sending your prompts to cloud AI services, the AI runs locally on your device.
+
+---
+
+# Features
+
+* Access AI through Telegram
 * Run AI models locally using Ollama
-* Access AI through a Telegram bot
-* Works on Raspberry Pi 5
+* Designed for Raspberry Pi
 * Multi-model support
-* Private and self-hosted
+* Lightweight architecture
 * Open-source and extensible
 
 ---
 
-## Why TelePort2PI?
+# Why TelePort2PI?
 
-Most AI assistants depend on cloud APIs. TelePort2PI allows you to run AI locally and access it remotely through Telegram.
+Most AI assistants rely on cloud APIs.
 
-Benefits:
+TelePort2PI provides:
 
-* No API costs
 * Full privacy
-* Customizable models
-* Lightweight hardware requirements
+* No API cost
+* Local AI execution
+* Full control over models
 
 ---
 
-## How It Works
+# How It Works
 
 User sends a message to a Telegram bot.
 
 ```
-User → Telegram Bot → TelePort2PI → Ollama → AI Model → Response → Telegram
+User → Telegram → TelePort2PI → Ollama → AI Model → Response → Telegram
 ```
 
-TelePort2PI acts as the bridge between Telegram and the local AI model.
+TelePort2PI acts as a bridge between Telegram and the local AI model.
 
 ---
 
-## System Architecture
+# Hardware Requirements
 
-Components:
+Recommended:
 
-* Telegram Bot
-* TelePort2PI Service
-* Ollama API
-* Local LLM Model
-
-All AI inference runs locally on the Raspberry Pi.
+* Raspberry Pi 5 (8GB RAM)
+* 64GB storage
+* Internet connection
 
 ---
 
-## Requirements
-
-Hardware:
-
-* Raspberry Pi 5 (8GB recommended)
-
-Software:
+# Software Requirements
 
 * Python 3.10+
 * Ollama
@@ -69,9 +68,9 @@ Software:
 
 ---
 
-## Installation
+# Installation
 
-### 1 Install Ollama
+## 1 Install Ollama
 
 ```
 curl -fsSL https://ollama.com/install.sh | sh
@@ -85,16 +84,16 @@ ollama pull mistral
 
 ---
 
-### 2 Clone Repository
+## 2 Clone Repository
 
 ```
-git clone https://github.com/YOUR_USERNAME/teleport2pi.git
+git clone https://github.com/a-sunny/teleport2pi.git
 cd teleport2pi
 ```
 
 ---
 
-### 3 Install Dependencies
+## 3 Install Dependencies
 
 ```
 pip install -r requirements.txt
@@ -102,11 +101,11 @@ pip install -r requirements.txt
 
 ---
 
-### 4 Configure Telegram Bot
+## 4 Create Telegram Bot
 
-Create a bot using Telegram BotFather.
+Use Telegram **BotFather** to create a bot and obtain a bot token.
 
-Add your bot token in:
+Add your token inside:
 
 ```
 config/config.py
@@ -114,7 +113,7 @@ config/config.py
 
 ---
 
-### 5 Run TelePort2PI
+## 5 Run TelePort2PI
 
 ```
 python teleport2pi.py
@@ -122,32 +121,32 @@ python teleport2pi.py
 
 ---
 
-## Example Usage
+# Example Usage
 
 Send a message to your Telegram bot:
 
 ```
-Explain black holes in simple terms
+Explain quantum computing simply
 ```
 
-The AI model running on your Raspberry Pi will generate a response.
+The AI model running on your Raspberry Pi will generate a response and send it back through Telegram.
 
 ---
 
-## Roadmap
+# Roadmap
 
 Planned features:
 
 * Multi-user support
 * Conversation memory
-* Voice messages
 * File summarization
-* Smart home integration
+* Voice messages
 * Model switching
+* Smart home integration
 
 ---
 
-## Contributing
+# Contributing
 
 Contributions are welcome.
 
@@ -162,20 +161,21 @@ Fork the repository and submit a pull request.
 
 ---
 
-## License
+# License
 
 MIT License
 
 ---
 
-## Vision
+# Author
+
+Created by **Sunny**
+https://github.com/a-sunny
+
+---
+
+# Vision
 
 TelePort2PI aims to make personal AI servers simple, private, and accessible using affordable hardware like Raspberry Pi.
 
 Run your own AI. Access it anywhere.
-
----
-
-## Author
-
-Created as an open-source project to explore local AI systems and edge computing.
