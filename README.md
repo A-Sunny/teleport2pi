@@ -9,7 +9,7 @@ Chat with local AI models running on your Raspberry Pi — from anywhere in the 
 ## Install (one line)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/teleport2pi/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/a-sunny/teleport2pi/main/install.sh)
 ```
 
 The installer will:
