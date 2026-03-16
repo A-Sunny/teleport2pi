@@ -146,7 +146,7 @@ teleport2pi/
 │   ├── commands.py       # All /command handlers
 │   └── ollama_client.py  # Ollama REST API client
 ├── config/
-│   └── config.example.py # Configuration template
+│   └── config.py # Configuration template
 ├── docs/
 │   └── architecture.md   # System design diagram
 ├── logs/                 # Created automatically at runtime
