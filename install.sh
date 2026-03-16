@@ -2,7 +2,7 @@
 # ============================================================
 # TelePort2PI — One-Line Installer
 # Usage:
-#   bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/teleport2pi/main/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/a-sunny/teleport2pi/main/install.sh)
 # ============================================================
 
 set -e
@@ -37,7 +37,7 @@ echo -e "${RESET}"
 
 # ── Config ───────────────────────────────────────────────────
 INSTALL_DIR="$HOME/teleport2pi"
-REPO_URL="https://github.com/YOUR_USERNAME/teleport2pi.git"
+REPO_URL="https://github.com/a-sunny/teleport2pi.git"
 VENV_DIR="$INSTALL_DIR/.venv"
 PYTHON="python3"
 
