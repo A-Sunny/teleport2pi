@@ -217,6 +217,28 @@ with open('$CONFIG_FILE', 'w') as f:
 "
 success "Default model set to: $MODEL"
 
+# ── Pull embedding model for memory system ────────────────────
+echo ""
+info "Checking for memory embedding model (nomic-embed-text)..."
+
+if command -v ollama >/dev/null 2>&1; then
+    if ollama list 2>/dev/null | grep -q "nomic-embed-text"; then
+        success "nomic-embed-text already pulled — skipping"
+    else
+        read -p "  Pull nomic-embed-text for semantic memory? (~270MB) [Y/n]: " PULL_EMBED
+        PULL_EMBED=${PULL_EMBED:-Y}
+        if [[ "$PULL_EMBED" =~ ^[Yy]$ ]]; then
+            info "Pulling nomic-embed-text..."
+            ollama pull nomic-embed-text || warn "Pull failed — run manually: ollama pull nomic-embed-text"
+            success "nomic-embed-text ready"
+        else
+            warn "Skipped. Memory will use recency-based fallback instead of semantic search."
+        fi
+    fi
+else
+    warn "Ollama not available — skipping embed model. Pull it later: ollama pull nomic-embed-text"
+fi
+
 # ── Create logs dir and launcher script ───────────────────────
 mkdir -p "$INSTALL_DIR/logs"
 
