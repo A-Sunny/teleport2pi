@@ -88,6 +88,20 @@ if [ -d "$INSTALL_DIR" ]; then
         info "Config backed up to: $CONFIG_BACKUP"
     fi
 
+    # Ask about memory backup
+    MEMORY_FILE="$INSTALL_DIR/data/memory.json"
+    if [ -f "$MEMORY_FILE" ]; then
+        echo ""
+        read -p "  Keep your memory data (stored memories)? [Y/n]: " KEEP_MEMORY
+        KEEP_MEMORY=${KEEP_MEMORY:-Y}
+
+        if [[ "$KEEP_MEMORY" =~ ^[Yy]$ ]]; then
+            MEMORY_BACKUP="$HOME/teleport2pi_memory_backup.json"
+            cp "$MEMORY_FILE" "$MEMORY_BACKUP"
+            info "Memory backed up to: $MEMORY_BACKUP"
+        fi
+    fi
+
     rm -rf "$INSTALL_DIR"
     success "Removed $INSTALL_DIR"
 else
@@ -132,6 +146,9 @@ echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━�
 echo ""
 if [[ "$KEEP_CONFIG" =~ ^[Yy]$ ]] && [ -f "$HOME/teleport2pi_config_backup.py" ]; then
 echo -e "  ${BOLD}Config backup:${RESET}  $HOME/teleport2pi_config_backup.py"
+fi
+if [[ "${KEEP_MEMORY:-N}" =~ ^[Yy]$ ]] && [ -f "$HOME/teleport2pi_memory_backup.json" ]; then
+echo -e "  ${BOLD}Memory backup:${RESET}  $HOME/teleport2pi_memory_backup.json"
 fi
 echo -e "  ${CYAN}To reinstall anytime:${RESET}"
 echo -e "  bash <(curl -fsSL https://raw.githubusercontent.com/a-sunny/teleport2pi/main/install.sh)"
