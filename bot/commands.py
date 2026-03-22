@@ -47,7 +47,13 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "`/translate <lang> <text>` — Translate text\n"
         "`/code <task>` — Generate code\n"
         "`/explain <topic>` — Explain a concept simply\n\n"
-        "_Tip: You can also just send any message to chat directly._"
+        "*Memory*\n"
+        "`/memory` — Show your stored memories\n"
+        "`/remember <text>` — Manually save a memory\n"
+        "`/forget <text>` — Delete memories matching text\n"
+        "`/clear_memory` — Wipe all your memories\n\n"
+        "_Tip: You can also just send any message to chat directly._\n"
+        "_To save something naturally, start with: `remember ...` or `note that ...`_"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
