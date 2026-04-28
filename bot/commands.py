@@ -146,7 +146,7 @@ async def cmd_setmodel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Handle /setmodel <name> — switch the user's active model."""
     if not context.args:
         await update.message.reply_text(
-            "Usage: `/setmodel <model_name>`\n\nExample: `/setmodel mistral`",
+            "Usage: `/setmodel <model_name>`\n\nExample: `/setmodel qwen2.5:1.5b`",
             parse_mode=ParseMode.MARKDOWN,
         )
         return
