@@ -41,6 +41,21 @@ The uninstaller will:
 
 ---
 
+## Update
+
+```bash
+bash ~/teleport2pi/update.sh
+```
+
+The updater will:
+- Backup your user data (`config.py`, `data/memory.json`)
+- Pull the latest code from GitHub
+- Update Python dependencies
+- Restart the service if running
+- Preserve all your settings and conversation history
+
+---
+
 ## Features
 
 - 💬 **Full AI chat** with conversation history
@@ -120,6 +135,7 @@ teleport2pi/
 ├── logs/                 # Created automatically at runtime
 ├── install.sh            # One-line installer
 ├── uninstall.sh          # Uninstaller
+├── update.sh             # Updater (preserves user data)
 ├── start.sh              # Manual start script (created by installer)
 ├── requirements.txt
 ├── .gitignore
