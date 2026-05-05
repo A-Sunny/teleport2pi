@@ -124,7 +124,7 @@ async def cmd_models(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     if not models:
         await update.message.reply_text(
-            "No models found. Pull one with:\n`ollama pull llama3.2`",
+            "No models found. Pull one with:\n`ollama pull qwen2.5:1.5b`",
             parse_mode=ParseMode.MARKDOWN,
         )
         return
